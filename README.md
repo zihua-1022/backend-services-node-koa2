@@ -1,2 +1,2 @@
-# weapp-slacking-daily
-基于Taro+Taro UI+nodeJS技术栈实现的一个微信小程序，理念是为每一个年轻人提供一个良好的平台记录和享受自己的每日休闲时刻，日常摸鱼从我做起！
+# weapp-wallpaper-services
+一个关于壁纸、头像的后端服务，其中技术框架选型为Koa2+NodeJs

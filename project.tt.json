@@ -1,9 +1,0 @@
-{
-  "miniprogramRoot": "./",
-  "projectname": "my-taroUI-project",
-  "appid": "testAppId",
-  "setting": {
-    "es6": false,
-    "minified": false
-  }
-}
