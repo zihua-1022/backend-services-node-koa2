@@ -7,6 +7,7 @@ const db = require("./database");
 const router = require("./router");
 const mKeepAlive = require("./middleware/keepAlive");
 
+const hostname = process.env.APP_HOST;
 const port = process.env.APP_PORT;
 const app = new Koa();
 
@@ -30,5 +31,5 @@ app
   .use(router.allowedMethods());
 
 app.listen(port, () => {
-  console.log(`Koa server listening on http://10.15.15.133:${port}`);
+  console.log(`Koa server listening on http://${hostname}:${port}`);
 });
