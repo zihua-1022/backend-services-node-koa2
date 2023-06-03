@@ -6,29 +6,29 @@ const path = require("path");
 
 const tokenSecret = process.env.TOKEN_SECRET;
 
-// export const autoImportRouter = () => {
-//   // 获取路由文件所在的目录
-//   const routersDir = path.join(__dirname);
-//   // 读取 router 目录中除index.js和非js外的所有文件
-//   const files = fs
-//     .readdirSync(routersDir)
-//     .filter((file) => file !== "index.js" && file.endsWith(".js"));
-
-//   // 遍历目录下的所有路由文件
-//   files.forEach((file) => {
-//     // // 判断文件类型是否为 js
-//     // if (file.endsWith(".js")) {
-//     const filePath = path.join(routersDir, file);
-//     // 获取一个路径中的文件名（不包含扩展名）
-//     const fileName = path.basename(filePath, ".js");
-//     console.log("fileName: ", fileName);
-
-//     // 导入模块路由
-//     const subRouter = require(filePath);
-//     // 注册路由级组件/模块路由
-//     router.use(`/${fileName}`, subRouter.routes(), subRouter.allowedMethods());
-//   });
-// };
+/**
+ * @param fileDir {当前文件所在的目录}
+ * @param unexpected {不期望导出的文件模块}
+ */
+const autoImportModules = (fileDir, unexpected) => {
+  let fileModule = {};
+  // 读取 fileDir 目录中除unexpected和非js外的所有文件
+  const files = fs
+    .readdirSync(fileDir)
+    .filter((file) => !unexpected.includes(file) && file.endsWith(".js")); // file.endsWith(".js")判断文件类型是否为 js
+  // 遍历目录下的所有路由文件
+  files.forEach((file) => {
+    const filePath = path.join(fileDir, file);
+    // 获取一个路径中的文件名（不包含扩展名）
+    const fileName = path.basename(filePath, ".js");
+    fileModule = {
+      ...fileModule,
+      // 导入模块
+      [fileName]: require(filePath),
+    };
+  });
+  return fileModule;
+};
 
 const generateUUID = () => {
   const uuid = uuidv4();
@@ -113,6 +113,7 @@ const verifyToken = (token, ...config) => {
 };
 
 module.exports = {
+  autoImportModules,
   // weappLogin,
   getWeappOpenid,
   getAccessToken,
