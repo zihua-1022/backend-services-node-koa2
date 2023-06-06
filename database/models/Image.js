@@ -54,6 +54,10 @@ Image.init(
       type: DataTypes.TINYINT,
       field: "is_primary",
     },
+    isPhone: {
+      type: DataTypes.TINYINT,
+      field: "is_phone",
+    },
   },
   {
     sequelize,

@@ -2,9 +2,9 @@ const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../index"); // 导入之前创建的 Sequelize 实例
 const config = require("./config");
 
-class PrimaryCategory extends Model {}
+class MainCategory extends Model {}
 
-PrimaryCategory.init(
+MainCategory.init(
   {
     mid: {
       type: DataTypes.INTEGER,
@@ -25,10 +25,10 @@ PrimaryCategory.init(
   },
   {
     sequelize,
-    modelName: "PrimaryCategory",
-    tableName: "primary_category",
+    modelName: "MainCategory",
+    tableName: "main_category",
     ...config,
   }
 );
 
-module.exports = PrimaryCategory;
+module.exports = MainCategory;

@@ -17,9 +17,10 @@ Account.init(
       allowNull: false,
       field: "user_id",
     },
-    nickname: {
+    nickName: {
       type: DataTypes.STRING,
       allowNull: false,
+      field: "nickname",
     },
     password: {
       type: DataTypes.STRING,
@@ -52,7 +53,7 @@ Account.init(
     },
     lastLoginAt: {
       type: DataTypes.STRING,
-      field: "last_login_time",
+      field: "last_login_at",
     },
   },
   {
