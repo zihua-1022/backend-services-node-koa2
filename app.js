@@ -13,7 +13,7 @@ const router = require("./router");
 const mKeepAlive = require("./middleware/keepAlive");
 
 const hostname = process.env.APP_HOST;
-const port = process.env.DEV_APP_PORT;
+const port = process.env.APP_PORT;
 const app = new Koa();
 
 app.context.db = db; // 挂载db到app全局

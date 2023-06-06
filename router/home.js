@@ -25,21 +25,20 @@ home.get("/testMysql/:id", async (ctx, next) => {
 });
 
 home.get("/image-recommend", async (ctx, next) => {
-  const { db } = ctx;
-  console.log("ctx: ", ctx);
   try {
-    const res = await db.query("select * from image where is_recommend = ?", [
-      1,
-    ]);
-    if (res) {
-      console.log("res: ", res);
-      // // 设置响应头
-      // ctx.set("Connection", "keep-alive");
-      // ctx.response.status = 409;
+    const { db } = ctx;
+    const { Image } = db.models;
+    const queryParams = {
+      where: {
+        isRecommend: 1,
+      },
+    };
+    const imagesData = await Image.findAll(queryParams);
+    if (imagesData) {
       const baseData = {
         status: true,
         msg: "获取今日推荐成功",
-        data: res,
+        data: imagesData,
       };
       ctx.response.body = baseData;
       const extraData = {
@@ -56,25 +55,25 @@ home.get("/image-recommend", async (ctx, next) => {
     }
     await next();
   } catch (err) {
-    console.log("err: ", err);
     ctx.throw(500, "Internal Server Error");
   }
 });
 
 home.get("/image-popular", async (ctx, next) => {
-  const { db } = ctx;
-  console.log("ctx: ", ctx);
   try {
-    const res = await db.query("select * from image where is_hot = ?", [1]);
-    if (res) {
-      console.log("res: ", res);
-      // // 设置响应头
-      // ctx.set("Connection", "keep-alive");
-      // ctx.response.status = 409;
+    const { db } = ctx;
+    const { Image } = db.models;
+    const queryParams = {
+      where: {
+        isHot: 1,
+      },
+    };
+    const imagesData = await Image.findAll(queryParams);
+    if (imagesData) {
       const baseData = {
         status: true,
         msg: "获取今日热门成功",
-        data: res,
+        data: imagesData,
       };
       ctx.response.body = baseData;
       const extraData = {
@@ -91,7 +90,6 @@ home.get("/image-popular", async (ctx, next) => {
     }
     await next();
   } catch (err) {
-    console.log("err: ", err);
     ctx.throw(500, "Internal Server Error");
   }
 });

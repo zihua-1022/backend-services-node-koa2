@@ -2,19 +2,32 @@ const Router = require("koa-router");
 const category = new Router();
 
 category.get("/image", async (ctx, next) => {
-  const { db } = ctx;
-  console.log("ctx: ", ctx);
   try {
-    const res = await db.query("select * from image");
-    if (res) {
-      console.log("res: ", res);
-      // // 设置响应头
-      // ctx.set("Connection", "keep-alive");
-      // ctx.response.status = 409;
+    const { db, query } = ctx;
+    const { Image, Category } = db.models;
+    const queryParams = {
+      where: query,
+      attributes: {
+        include: [
+          [db.col("Categories.cid"), "cid"],
+          [db.col("Categories.category_name"), "categoryName"],
+        ],
+      },
+      include: {
+        model: Category,
+        attributes: [],
+        through: {
+          attributes: [],
+        },
+      },
+      raw: true, // 获取原始查询结果
+    };
+    const imagesData = await Image.findAll(queryParams);
+    if (imagesData) {
       const baseData = {
         status: true,
         msg: "获取图片成功",
-        data: res,
+        data: imagesData,
       };
       ctx.response.body = baseData;
       const extraData = {
@@ -31,7 +44,6 @@ category.get("/image", async (ctx, next) => {
     }
     await next();
   } catch (err) {
-    console.log("err: ", err);
     ctx.throw(500, "Internal Server Error");
   }
 });
