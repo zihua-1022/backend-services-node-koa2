@@ -1,12 +1,20 @@
 const Router = require("koa-router");
 const category = new Router();
+const { Op } = require("sequelize");
 
 category.get("/image", async (ctx, next) => {
   try {
     const { db, query } = ctx;
+    let { cid, ...params } = query;
+    if (cid) {
+      params = {
+        ...params,
+        "$Categories.cid$": { [Op.eq]: cid },
+      };
+    }
     const { Image, Category } = db.models;
     const queryParams = {
-      where: query,
+      where: params,
       attributes: {
         include: [
           [db.col("Categories.cid"), "cid"],
