@@ -11,8 +11,8 @@ computer.get("/image-recommend", async (ctx, next) => {
     // );
     const queryParams = {
       where: {
-        isRecommend: 1,
         isPrimary: 1,
+        isPhone: 0,
       },
       attributes: {
         include: [

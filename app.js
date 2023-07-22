@@ -1,5 +1,6 @@
 const Koa = require("koa");
 const cors = require("@koa/cors");
+const { koaBody } = require("koa-body");
 const bodyParser = require("koa-bodyparser");
 const staticServe = require("koa-static");
 const dotenv = require("dotenv");
@@ -18,7 +19,16 @@ const app = new Koa();
 
 app.context.db = db; // 挂载db到app全局
 app.context.db.models = dbModels;
-
+console.log(path.join(__dirname, "public/images/wallpaper/mobile"));
+app.use(
+  koaBody({
+    multipart: true,
+    formidable: {
+      uploadDir: process.env.FILE_UPLOAD_DIR, // 指定上传文件的临时目录
+      keepExtensions: true, // 保留文件扩展名
+    },
+  })
+);
 app.use(bodyParser());
 app.use(
   cors({

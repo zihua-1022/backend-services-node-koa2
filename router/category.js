@@ -94,4 +94,43 @@ category.get("/image-tabs", async (ctx, next) => {
   }
 });
 
+category.get("/all", async (ctx, next) => {
+  try {
+    const { db } = ctx;
+    const { MainCategory, Category } = db.models;
+    const queryParams = {
+      // include: {
+      //   model: Category,
+      //   attributes: ["cid", "categoryName"],
+      //   through: {
+      //     attributes: [],
+      //   },
+      // },
+    };
+    const categoryData = await Category.findAll(queryParams);
+    if (categoryData) {
+      const baseData = {
+        status: true,
+        msg: "获取图片成功",
+        data: categoryData,
+      };
+      ctx.response.body = baseData;
+      const extraData = {
+        code: ctx.response.status,
+      };
+      ctx.response.body = { ...baseData, ...extraData };
+    } else {
+      ctx.response.body = {
+        code: 500,
+        status: false,
+        msg: "获取图片失败",
+        data: null,
+      };
+    }
+    await next();
+  } catch (err) {
+    ctx.throw(500, "Internal Server Error");
+  }
+});
+
 module.exports = category;

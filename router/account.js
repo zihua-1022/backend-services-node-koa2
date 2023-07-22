@@ -1,7 +1,60 @@
+const path = require("path");
+const fs = require("fs");
 const Router = require("koa-router");
 const account = new Router();
 const moment = require("moment");
 const tools = require("../utils/tools");
+
+const uploadDir = process.env.FILE_UPLOAD_DIR;
+
+account.post("/uplaod-file", async (ctx, next) => {
+  try {
+    const { db } = ctx;
+    const { Image, ImageCategory } = db.models;
+    const fileInfo = ctx.request.body;
+    console.log("fil-=----eInfo: ", fileInfo);
+    const { imgName, imgSize, isPhone, cid, ...fileData } = fileInfo;
+    const file = ctx.request.files.image; // 获取上传的文件对象
+    console.log("fi+++++++++le: ", file);
+    if (file) {
+      const relativePath = `images/wallpaper/mobile/${file.originalFilename}`;
+      // 将文件从临时路径移动到存储路径
+      const filePath = path.join(uploadDir, relativePath);
+      fs.renameSync(file.filepath, filePath);
+      const tableFields = {
+        ...fileData,
+        imgName: file.originalFilename.split(".")[0],
+        imgSize: Number(imgSize),
+        isPhone: Number(isPhone),
+        path: relativePath,
+      };
+      const image = await Image.create(tableFields);
+      const imageCategory = await ImageCategory.create({
+        category_id: Number(cid),
+        image_id: image.id,
+      });
+      if (imageCategory) {
+        const baseData = {
+          msg: "上传成功",
+          data: relativePath,
+        };
+        ctx.response.body = baseData;
+        const extraData = {
+          code: ctx.response.status,
+        };
+        ctx.response.body = { ...baseData, ...extraData };
+      }
+    } else {
+      ctx.response.body = {
+        code: 500,
+        msg: "上传失败",
+        data: null,
+      };
+    }
+  } catch (err) {
+    ctx.throw(500, "Internal Server Error");
+  }
+});
 
 account.post("/auth/token", async (ctx, next) => {
   try {
@@ -10,6 +63,7 @@ account.post("/auth/token", async (ctx, next) => {
     const { code, userInfo } = ctx.request.body;
     const weappData = await tools.getWeappOpenid(code);
     if (weappData) {
+      console.log("weappData: ", weappData);
       // const timestamp = Math.floor(Date.now() / 1000);
       const date = new Date();
       // 获取当前时间( UTC协调世界时)并格式化为 datetime 格式
@@ -32,6 +86,7 @@ account.post("/auth/token", async (ctx, next) => {
         uuid: uuid,
         lastLoginAt: currentDateTime,
       };
+      console.log("tableFields: ", tableFields);
       // 查找或创建用户
       const [user, created] = await Account.findOrCreate({
         where: { userId: openid },

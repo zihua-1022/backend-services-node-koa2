@@ -21,6 +21,10 @@ Image.init(
       type: DataTypes.STRING,
       field: "img_desc",
     },
+    imgColor: {
+      type: DataTypes.STRING,
+      field: "img_color",
+    },
     imgType: {
       type: DataTypes.STRING,
       field: "img_type",
@@ -45,18 +49,22 @@ Image.init(
     isHot: {
       type: DataTypes.TINYINT,
       field: "is_hot",
+      defaultValue: 0,
     },
     isRecommend: {
       type: DataTypes.TINYINT,
       field: "is_recommend",
+      defaultValue: 0,
     },
     isPrimary: {
       type: DataTypes.TINYINT,
       field: "is_primary",
+      defaultValue: 0,
     },
     isPhone: {
       type: DataTypes.TINYINT,
       field: "is_phone",
+      defaultValue: 0,
     },
   },
   {
