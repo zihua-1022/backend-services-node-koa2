@@ -20,16 +20,18 @@ const app = new Koa();
 app.context.db = db; // 挂载db到app全局
 app.context.db.models = dbModels;
 console.log(path.join(__dirname, "public/images/wallpaper/mobile"));
+
 app.use(
   koaBody({
     multipart: true,
-    formidable: {
-      uploadDir: process.env.FILE_UPLOAD_DIR, // 指定上传文件的临时目录
-      keepExtensions: true, // 保留文件扩展名
-    },
+    // formidable: {
+    //   uploadDir: process.env.FILE_UPLOAD_DIR, // 指定上传文件的临时目录
+    //   keepExtensions: true, // 保留文件扩展名
+    // },
   })
 );
-app.use(bodyParser());
+app.use(bodyParser({ jsonLimit: "10mb", formLimit: "10mb" }));
+
 app.use(
   cors({
     origin: "*",
