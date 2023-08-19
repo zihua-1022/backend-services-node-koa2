@@ -16,40 +16,36 @@ Image.init(
       type: DataTypes.STRING,
       allowNull: false,
       field: "img_name",
+      defaultValue: "无",
     },
-    imgDesc: {
+    imgResolution: {
       type: DataTypes.STRING,
-      field: "img_desc",
-    },
-    imgColor: {
-      type: DataTypes.STRING,
-      field: "img_color",
-    },
-    imgType: {
-      type: DataTypes.STRING,
-      field: "img_type",
+      allowNull: false,
+      field: "img_resolution",
     },
     imgSize: {
       type: DataTypes.INTEGER,
       allowNull: false,
       field: "img_size",
     },
-    imgResolution: {
-      type: DataTypes.STRING,
-      field: "img_resolution",
-    },
-    imgTags: {
-      type: DataTypes.STRING,
-      field: "img_tags",
+    dSize: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: "d_size",
     },
     path: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    isHot: {
-      type: DataTypes.TINYINT,
-      field: "is_hot",
-      defaultValue: 0,
+    dPath: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: "d_path",
+    },
+    imgProperty: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: "img_property",
     },
     isRecommend: {
       type: DataTypes.TINYINT,
@@ -61,10 +57,35 @@ Image.init(
       field: "is_primary",
       defaultValue: 0,
     },
-    isPhone: {
+    isHot: {
       type: DataTypes.TINYINT,
-      field: "is_phone",
+      field: "is_hot",
       defaultValue: 0,
+    },
+    userId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: "user_id",
+    },
+    imgColor: {
+      type: DataTypes.STRING,
+      field: "img_color",
+      defaultValue: "#0f0f0f",
+    },
+    imgDesc: {
+      type: DataTypes.STRING,
+      field: "img_desc",
+      defaultValue: "无",
+    },
+    imgTags: {
+      type: DataTypes.STRING,
+      field: "img_tags",
+      defaultValue: "无",
+    },
+    imgType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: "img_type",
     },
   },
   {

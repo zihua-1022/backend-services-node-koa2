@@ -39,6 +39,9 @@ Account.init(
     avatar: {
       type: DataTypes.STRING,
     },
+    admin: {
+      type: DataTypes.TINYINT,
+    },
     openId: {
       type: DataTypes.STRING,
       field: "open_id",
