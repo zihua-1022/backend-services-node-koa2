@@ -5,16 +5,105 @@ const { Op } = require("sequelize");
 category.get("/image", async (ctx, next) => {
   try {
     const { db, query } = ctx;
-    let { cid, ...params } = query;
-    if (cid) {
-      params = {
-        ...params,
-        "$Categories.cid$": { [Op.eq]: cid },
-      };
+    const { cid, page, pageSize, ...params } = query;
+    const { Image, Category, ImageCategory } = db.models;
+    let offset = 0;
+    let limit = 11;
+    if (page && pageSize) {
+      offset = +page * pageSize;
+      limit = +pageSize;
     }
+    const imageCategoryData = await ImageCategory.findAll({
+      where: {
+        category_id: cid,
+      },
+      attributes: {
+        exclude: ["category_id"],
+      },
+      raw: true, // 获取原始查询结果
+    });
+    const imageIds = [];
+    imageCategoryData.forEach((i) => {
+      imageIds.push(i.image_id);
+    });
+    const queryParams = {
+      where: {
+        ...params,
+        id: {
+          [Op.in]: imageIds,
+        },
+      },
+      order: [
+        // 将返回 `createdAt` DESC
+        ["createdAt", "DESC"],
+      ],
+      limit,
+      offset,
+      raw: true, // 获取原始查询结果
+    };
+    const { count, rows } = await Image.findAndCountAll(queryParams);
+    const categoryData = await Category.findOne({
+      where: {
+        cid,
+      },
+      raw: true, // 获取原始查询结果
+    });
+    const imagesData = rows.map((i) => {
+      return {
+        ...i,
+        cid: categoryData.cid,
+        categoryName: categoryData.categoryName,
+      };
+    });
+    // const queryParams = {
+    //   where: {
+    //     ...params,
+    //     // "$Categories.cid$": { [Op.eq]: cid },
+    //   },
+    //   include: {
+    //     model: Category,
+    //     where: {
+    //       cid,
+    //     },
+    //     // required: false,
+    //     attributes: [],
+    //     through: {
+    //       attributes: [],
+    //     },
+    //   },
+    //   limit,
+    //   offset,
+    //   raw: true, // 获取原始查询结果
+    // };
+    const baseData = {
+      status: true,
+      msg: "获取图片成功",
+      data: {
+        total: count,
+        value: imagesData,
+      },
+    };
+    ctx.response.body = baseData;
+    const extraData = {
+      code: ctx.response.status,
+    };
+    ctx.response.body = { ...baseData, ...extraData };
+    await next();
+  } catch (err) {
+    ctx.throw(500, "Internal Server Error");
+  }
+});
+
+category.get("/image-tabs", async (ctx, next) => {
+  try {
+    const { db, query } = ctx;
+    const { ...params } = query;
     const { Image, Category } = db.models;
     const queryParams = {
-      where: params,
+      where: {
+        ...params,
+        isPrimary: 1,
+      },
       attributes: {
         include: [
           [db.col("Categories.cid"), "cid"],
@@ -30,49 +119,46 @@ category.get("/image", async (ctx, next) => {
       },
       raw: true, // 获取原始查询结果
     };
-    const imagesData = await Image.findAll(queryParams);
-    if (imagesData) {
-      const baseData = {
-        status: true,
-        msg: "获取图片成功",
-        data: imagesData,
-      };
-      ctx.response.body = baseData;
-      const extraData = {
-        code: ctx.response.status,
-      };
-      ctx.response.body = { ...baseData, ...extraData };
-    } else {
-      ctx.response.body = {
-        code: 500,
-        status: false,
-        msg: "获取图片失败",
-        data: null,
-      };
-    }
+    const tabsData = await Image.findAll(queryParams);
+    const baseData = {
+      status: true,
+      msg: "获取图片分类成功",
+      data: tabsData,
+    };
+    ctx.response.body = baseData;
+    const extraData = {
+      code: ctx.response.status,
+    };
+    ctx.response.body = { ...baseData, ...extraData };
     await next();
   } catch (err) {
     ctx.throw(500, "Internal Server Error");
   }
 });
 
-category.get("/image-tabs", async (ctx, next) => {
-  const { db } = ctx;
-  console.log("ctx: ", ctx);
+category.get("/single/:mid", async (ctx, next) => {
   try {
-    const res = await db.query(
-      "select * from image i,category c where i.category_id = c.id and i.is_primary = ?",
-      [1]
-    );
-    if (res) {
-      console.log("res: ", res);
-      // // 设置响应头
-      // ctx.set("Connection", "keep-alive");
-      // ctx.response.status = 409;
+    const { db } = ctx;
+    const mid = ctx.params.mid;
+    const { MainCategory, Category } = db.models;
+    const queryParams = {
+      where: {
+        "$MainCategories.mid$": { [Op.eq]: mid },
+      },
+      include: {
+        model: MainCategory,
+        attributes: [],
+        through: {
+          attributes: [],
+        },
+      },
+    };
+    const categoryData = await Category.findAll(queryParams);
+    if (categoryData) {
       const baseData = {
         status: true,
         msg: "获取图片类别成功",
-        data: res,
+        data: categoryData,
       };
       ctx.response.body = baseData;
       const extraData = {
@@ -89,7 +175,6 @@ category.get("/image-tabs", async (ctx, next) => {
     }
     await next();
   } catch (err) {
-    console.log("err: ", err);
     ctx.throw(500, "Internal Server Error");
   }
 });

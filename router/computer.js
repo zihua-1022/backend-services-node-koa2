@@ -3,17 +3,11 @@ const computer = new Router();
 
 computer.get("/image-recommend", async (ctx, next) => {
   try {
-    const { db } = ctx;
+    const { db, query } = ctx;
     const { Image, Category, MainCategory } = db.models;
-    // const res = await db.query(
-    //   "select i.*, p.* from image i, image_category c, primary_category p  where c.category_id = p.mid and i.id = c.image_id and i.is_primary = ?",
-    //   [9]
-    // );
+    const { ...params } = query;
     const queryParams = {
-      where: {
-        isPrimary: 1,
-        isPhone: 0,
-      },
+      where: params,
       attributes: {
         include: [
           [db.col("Categories.MainCategories.mid"), "mid"],

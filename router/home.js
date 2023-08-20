@@ -28,17 +28,17 @@ home.get("/testMysql/:id", async (ctx, next) => {
 home.get("/image-category", async (ctx, next) => {
   try {
     const { db, query } = ctx;
-    let { mid, page, pageSize } = query;
+    let { mid, page, pageSize, ...params } = query;
     const { Image, Category, MainCategory } = db.models;
-    console.log("!params: ", page, pageSize);
     let offset = 0;
-    let limit = 8;
+    let limit = 10;
     if (page && pageSize) {
-      offset = (page - 1) * pageSize;
-      limit = pageSize;
+      offset = +page * pageSize;
+      limit = +pageSize;
     }
     const queryParams = {
       where: {
+        ...params,
         "$Categories.MainCategories.mid$": { [Op.eq]: mid },
       },
       attributes: {
@@ -64,35 +64,33 @@ home.get("/image-category", async (ctx, next) => {
           },
         },
       },
-      // limit,
+      order: [
+        // 将返回 `createdAt` DESC
+        ["createdAt", "DESC"],
+      ],
       raw: true, // 获取原始查询结果
     };
-    const imagesData = await Image.findAll(queryParams);
-    if (imagesData) {
-      const tempObj = {};
-      const res = imagesData.reduce(function(item, next) {
-        tempObj[next.id] ? '' : tempObj[next.id] = true && item.push(next);
-        return item
-      }, [])
+    const { count, rows } = await Image.findAndCountAll(queryParams);
+    const limitedData = rows.slice(offset, offset + limit);
+    // const tempObj = {};
+    // const res = imagesData.reduce(function (item, next) {
+    //   tempObj[next.id] ? "" : (tempObj[next.id] = true && item.push(next));
+    //   return item;
+    // }, []);
 
-      const baseData = {
-        status: true,
-        msg: "获取PC推荐图片成功",
-        data: res,
-      };
-      ctx.response.body = baseData;
-      const extraData = {
-        code: ctx.response.status,
-      };
-      ctx.response.body = { ...baseData, ...extraData };
-    } else {
-      ctx.response.body = {
-        code: 500,
-        status: false,
-        msg: "获取PC推荐图片失败",
-        data: null,
-      };
-    }
+    const baseData = {
+      status: true,
+      msg: "获取PC推荐图片成功",
+      data: {
+        total: count,
+        value: limitedData,
+      },
+    };
+    ctx.response.body = baseData;
+    const extraData = {
+      code: ctx.response.status,
+    };
+    ctx.response.body = { ...baseData, ...extraData };
     await next();
   } catch (err) {
     ctx.throw(500, "Internal Server Error");
@@ -101,33 +99,40 @@ home.get("/image-category", async (ctx, next) => {
 
 home.get("/image-recommend", async (ctx, next) => {
   try {
-    const { db } = ctx;
+    const { db, query } = ctx;
+    let { page, pageSize } = query;
     const { Image } = db.models;
+    let offset = 0;
+    let limit = 9;
+    if (page && pageSize) {
+      offset = +page * pageSize;
+      limit = +pageSize;
+    }
     const queryParams = {
       where: {
         isRecommend: 1,
       },
+      order: [
+        // 将返回 `createdAt` DESC
+        ["createdAt", "DESC"],
+      ],
+      limit,
+      offset,
     };
-    const imagesData = await Image.findAll(queryParams);
-    if (imagesData) {
-      const baseData = {
-        status: true,
-        msg: "获取今日推荐成功",
-        data: imagesData,
-      };
-      ctx.response.body = baseData;
-      const extraData = {
-        code: ctx.response.status,
-      };
-      ctx.response.body = { ...baseData, ...extraData };
-    } else {
-      ctx.response.body = {
-        code: 500,
-        status: false,
-        msg: "获取今日推荐失败",
-        data: null,
-      };
-    }
+    const { count, rows } = await Image.findAndCountAll(queryParams);
+    const baseData = {
+      status: true,
+      msg: "获取每日一图成功",
+      data: {
+        total: count,
+        value: rows,
+      },
+    };
+    ctx.response.body = baseData;
+    const extraData = {
+      code: ctx.response.status,
+    };
+    ctx.response.body = { ...baseData, ...extraData };
     await next();
   } catch (err) {
     ctx.throw(500, "Internal Server Error");
@@ -144,25 +149,16 @@ home.get("/image-popular", async (ctx, next) => {
       },
     };
     const imagesData = await Image.findAll(queryParams);
-    if (imagesData) {
-      const baseData = {
-        status: true,
-        msg: "获取今日热门成功",
-        data: imagesData,
-      };
-      ctx.response.body = baseData;
-      const extraData = {
-        code: ctx.response.status,
-      };
-      ctx.response.body = { ...baseData, ...extraData };
-    } else {
-      ctx.response.body = {
-        code: 500,
-        status: false,
-        msg: "获取今日热门失败",
-        data: null,
-      };
-    }
+    const baseData = {
+      status: true,
+      msg: "获取今日热门成功",
+      data: imagesData,
+    };
+    ctx.response.body = baseData;
+    const extraData = {
+      code: ctx.response.status,
+    };
+    ctx.response.body = { ...baseData, ...extraData };
     await next();
   } catch (err) {
     ctx.throw(500, "Internal Server Error");
