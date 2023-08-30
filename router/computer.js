@@ -1,5 +1,6 @@
 const Router = require("koa-router");
 const computer = new Router();
+const { Op } = require("sequelize");
 
 computer.get("/image-recommend", async (ctx, next) => {
   try {
@@ -35,45 +36,87 @@ computer.get("/image-recommend", async (ctx, next) => {
           },
         },
       },
+      // order: [
+      //   // 将返回 `createdAt` DESC
+      //   ["createdAt", "DESC"],
+      // ],
       raw: true, // 获取原始查询结果
     };
     const imagesData = await Image.findAll(queryParams);
-    if (imagesData) {
-      // const result = imagesData.map((item) => {
-      //   const {
-      //     "PrimaryCategories.mid": mid,
-      //     "PrimaryCategories.cTitle": cTitle,
-      //     "PrimaryCategories.cDesc": cDesc,
-      //     ...images
-      //   } = item;
-      //   return {
-      //     mid,
-      //     cTitle,
-      //     cDesc,
-      //     ...images,
-      //   };
-      // });
-      // // 设置响应头
-      // ctx.set("Connection", "keep-alive");
-      // ctx.response.status = 409;
-      const baseData = {
-        status: true,
-        msg: "获取PC推荐图片成功",
-        data: imagesData,
-      };
-      ctx.response.body = baseData;
-      const extraData = {
-        code: ctx.response.status,
-      };
-      ctx.response.body = { ...baseData, ...extraData };
-    } else {
-      ctx.response.body = {
-        code: 500,
-        status: false,
-        msg: "获取PC推荐图片失败",
-        data: null,
-      };
-    }
+    const baseData = {
+      status: true,
+      msg: "获取PC推荐图片成功",
+      data: imagesData,
+    };
+    ctx.response.body = baseData;
+    const extraData = {
+      code: ctx.response.status,
+    };
+    ctx.response.body = { ...baseData, ...extraData };
+    await next();
+  } catch (err) {
+    ctx.throw(500, "Internal Server Error");
+  }
+});
+
+computer.get("/image-tabs", async (ctx, next) => {
+  try {
+    const { db, query } = ctx;
+    const { mid, ...params } = query;
+    const { Image, Category, MainCategory } = db.models;
+
+    const queryParams = {
+      where: {
+        ...params,
+        isPrimary: 1,
+        "$Categories.MainCategories.mid$": { [Op.eq]: mid },
+      },
+      attributes: {
+        include: [
+          [db.col("Categories.MainCategories.mid"), "mid"],
+          [db.col("Categories.MainCategories.c_title"), "cTitle"],
+          [db.col("Categories.MainCategories.c_desc"), "cDesc"],
+          [db.col("Categories.cid"), "cid"],
+          [db.col("Categories.category_name"), "categoryName"],
+        ],
+      },
+      include: {
+        model: Category,
+        attributes: [],
+        through: {
+          attributes: [],
+        },
+        include: {
+          model: MainCategory,
+          attributes: [],
+          through: {
+            attributes: [],
+          },
+        },
+      },
+      // order: [
+      //   // 将返回 `createdAt` DESC
+      //   ["createdAt", "DESC"],
+      // ],
+      raw: true, // 获取原始查询结果
+    };
+    const imagesData = await Image.findAll(queryParams);
+    const tempObj = {};
+    const tabsData = imagesData.reduce(function (item, next) {
+      tempObj[next.cid] ? "" : (tempObj[next.cid] = true && item.push(next));
+      return item;
+    }, []);
+
+    const baseData = {
+      status: true,
+      msg: "获取PC推荐图片成功",
+      data: tabsData,
+    };
+    ctx.response.body = baseData;
+    const extraData = {
+      code: ctx.response.status,
+    };
+    ctx.response.body = { ...baseData, ...extraData };
     await next();
   } catch (err) {
     ctx.throw(500, "Internal Server Error");
