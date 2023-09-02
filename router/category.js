@@ -1,6 +1,7 @@
 const Router = require("koa-router");
 const category = new Router();
 const { Op } = require("sequelize");
+const { objArrDistinct } = require("../utils/tools");
 
 category.get("/image", async (ctx, next) => {
   try {
@@ -97,8 +98,8 @@ category.get("/image", async (ctx, next) => {
 category.get("/image-tabs", async (ctx, next) => {
   try {
     const { db, query } = ctx;
-    const { ...params } = query;
-    const { Image, Category } = db.models;
+    const { mid, ...params } = query;
+    const { Image, Category, MainCategory } = db.models;
     const queryParams = {
       where: {
         ...params,
@@ -119,7 +120,46 @@ category.get("/image-tabs", async (ctx, next) => {
       },
       raw: true, // 获取原始查询结果
     };
-    const tabsData = await Image.findAll(queryParams);
+    const queryParamsByMid = {
+      where: {
+        ...params,
+        isPrimary: 1,
+        "$Categories.MainCategories.mid$": { [Op.eq]: mid },
+      },
+      attributes: {
+        include: [
+          [db.col("Categories.MainCategories.mid"), "mid"],
+          [db.col("Categories.MainCategories.c_title"), "cTitle"],
+          [db.col("Categories.MainCategories.c_desc"), "cDesc"],
+          [db.col("Categories.cid"), "cid"],
+          [db.col("Categories.category_name"), "categoryName"],
+        ],
+      },
+      include: {
+        model: Category,
+        attributes: [],
+        through: {
+          attributes: [],
+        },
+        include: {
+          model: MainCategory,
+          attributes: [],
+          through: {
+            attributes: [],
+          },
+        },
+      },
+      // order: [
+      //   // 将返回 `createdAt` DESC
+      //   ["createdAt", "DESC"],
+      // ],
+      raw: true, // 获取原始查询结果
+    };
+    const imagesData = await Image.findAll(
+      mid ? queryParamsByMid : queryParams
+    );
+
+    const tabsData = mid ? objArrDistinct(imagesData, "cid") : imagesData;
     const baseData = {
       status: true,
       msg: "获取图片分类成功",

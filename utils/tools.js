@@ -316,6 +316,15 @@ const verifyToken = (token, ...config) => {
   }
 };
 
+const objArrDistinct = (objArr, key) => {
+  const tempObj = {};
+  const distinctData = objArr.reduce(function (item, next) {
+    tempObj[next[key]] ? "" : (tempObj[next[key]] = true && item.push(next));
+    return item;
+  }, []);
+  return distinctData;
+};
+
 module.exports = {
   uploadFileObjStorage,
   mergeUplaodFile,
@@ -329,4 +338,5 @@ module.exports = {
   generateToken,
   verifyToken,
   generateUUID,
+  objArrDistinct,
 };
